@@ -212,6 +212,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit, systemSettings }
     const unsubItems = onSnapshot(collection(db, 'content_items'), (snap) => {
       const list: ContentItem[] = [];
       snap.forEach((d) => list.push({ id: d.id, ...d.data() } as ContentItem));
+      // ترتيب تلقائي من الأقدم للأحدث (أول شيء تم رفعه يظهر أولاً)
+      list.sort((a, b) => {
+        const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        if (timeA !== timeB) return timeA - timeB;
+        return (a.id || '').localeCompare(b.id || '');
+      });
       setItems(list);
     });
 

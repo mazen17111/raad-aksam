@@ -58,7 +58,6 @@ import {
 } from 'firebase/firestore';
 import { StatsModal } from './StatsModal';
 import { FoldersModal } from './FoldersModal';
-import { BrandLogo } from './BrandLogo';
 import { ExamRunner } from './ExamRunner';
 
 interface StudentHomeProps {
@@ -180,6 +179,13 @@ export const StudentHome: React.FC<StudentHomeProps> = ({
     const unsubItems = onSnapshot(collection(db, 'content_items'), (snap) => {
       const list: ContentItem[] = [];
       snap.forEach((d) => list.push({ id: d.id, ...d.data() } as ContentItem));
+      // ترتيب تلقائي من الأقدم للأحدث (أول شيء تم رفعه يظهر أولاً)
+      list.sort((a, b) => {
+        const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        if (timeA !== timeB) return timeA - timeB;
+        return (a.id || '').localeCompare(b.id || '');
+      });
       setContentItems(list);
     });
 
@@ -207,10 +213,16 @@ export const StudentHome: React.FC<StudentHomeProps> = ({
     }
   }, [selectedSectionId, resources]);
 
-  // When selectedResourceId changes, default to first video if none active
+  // When selectedResourceId changes, default to first video (أول فيديو تم رفعه - من الأقدم للأحدث)
   useEffect(() => {
     if (!selectedResourceId) return;
-    const vids = contentItems.filter((i) => i.resourceId === selectedResourceId && i.type === 'video');
+    const vids = contentItems
+      .filter((i) => i.resourceId === selectedResourceId && i.type === 'video')
+      .sort((a, b) => {
+        const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return timeA - timeB;
+      });
     if (vids.length > 0 && !activeVideo) {
       setActiveVideo(vids[0]);
     }
@@ -632,11 +644,18 @@ export const StudentHome: React.FC<StudentHomeProps> = ({
 
   const activeTheme = systemSettings.activeTheme;
   const currentSectionResources = resources.filter((r) => r.sectionId === selectedSectionId);
-  const currentResourceItems = contentItems.filter((i) => i.resourceId === selectedResourceId);
+  const currentResourceItems: ContentItem[] = contentItems.filter((i) => i.resourceId === selectedResourceId);
 
-  const resourceVideos = currentResourceItems.filter((i) => i.type === 'video');
-  const resourceExams = currentResourceItems.filter((i) => i.type === 'exam');
-  const resourceFiles = currentResourceItems.filter((i) => i.type === 'file');
+  const sortByOldest = (a: ContentItem, b: ContentItem) => {
+    const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+    const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+    if (timeA !== timeB) return timeA - timeB;
+    return (a.id || '').localeCompare(b.id || '');
+  };
+
+  const resourceVideos: ContentItem[] = currentResourceItems.filter((i) => i.type === 'video').sort(sortByOldest);
+  const resourceExams: ContentItem[] = currentResourceItems.filter((i) => i.type === 'exam').sort(sortByOldest);
+  const resourceFiles: ContentItem[] = currentResourceItems.filter((i) => i.type === 'file').sort(sortByOldest);
 
   const selectedSectionObj = sections.find((s) => s.id === selectedSectionId);
   const selectedResourceObj = resources.find((r) => r.id === selectedResourceId);
@@ -655,11 +674,12 @@ export const StudentHome: React.FC<StudentHomeProps> = ({
       >
         {/* Brand & Student Welcome */}
         <div className="flex items-center gap-3">
-          <BrandLogo
-            customLogoUrl={systemSettings.logoUrl}
-            size="md"
-            primaryColor={activeTheme?.primary || '#2563eb'}
-          />
+          <div
+            className="w-10 h-10 rounded-2xl flex items-center justify-center text-white shadow-lg transition-transform hover:scale-105"
+            style={{ backgroundColor: activeTheme?.primary || '#2563eb' }}
+          >
+            <Zap className="w-6 h-6 fill-current text-amber-300" />
+          </div>
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-lg md:text-xl font-black tracking-tight">منصة أقسام رعد</h1>
@@ -1256,12 +1276,12 @@ export const StudentHome: React.FC<StudentHomeProps> = ({
               }
 
               const isWatched = currentUser.watchedVideoIds?.includes(activeVideoItem.id);
-              const linkedExams = contentItems.filter(
-                (it) => it.type === 'exam' && activeVideoItem.linkedExamIds?.includes(it.id)
-              );
-              const linkedFiles = contentItems.filter(
-                (it) => it.type === 'file' && activeVideoItem.linkedFileIds?.includes(it.id)
-              );
+              const linkedExams = contentItems
+                .filter((it) => it.type === 'exam' && activeVideoItem.linkedExamIds?.includes(it.id))
+                .sort(sortByOldest);
+              const linkedFiles = contentItems
+                .filter((it) => it.type === 'file' && activeVideoItem.linkedFileIds?.includes(it.id))
+                .sort(sortByOldest);
 
               return (
                 <div
