@@ -1165,7 +1165,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit, systemSettings }
                                     </div>
                                 </div>
                               ) : (
-                                <span className="text-slate-500 text-xs">غير محدد (مفتوح مؤقتاً)</span>
+                                <span className="text-amber-400/90 text-xs font-bold bg-amber-500/10 px-2 py-1 rounded-lg border border-amber-500/20">
+                                  غير محدد (العداد لا يظهر حتى التحديد)
+                                </span>
                               )}
                             </td>
 

@@ -13,6 +13,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { StudentUser, SystemSettings } from '../types';
+import { BrandLogo } from './BrandLogo';
 import { db } from '../firebase';
 import {
   collection,
@@ -113,9 +114,9 @@ export const AuthView: React.FC<AuthViewProps> = ({
           name: name.trim(),
           email: cleanEmail,
           password: password,
-          daysAllowed: 30, // Default 30 days
-          subscriptionStartDate: new Date().toISOString(),
-          subscriptionEndDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          daysAllowed: 0, // No default counter until admin assigns days in Admin Panel
+          subscriptionStartDate: '',
+          subscriptionEndDate: '',
           isIndividuallyBlocked: false,
           isIndividuallyWhitelisted: false,
           watchedVideoIds: [],
@@ -178,31 +179,33 @@ export const AuthView: React.FC<AuthViewProps> = ({
   return (
     <div
       className={`min-h-screen flex flex-col justify-between transition-colors duration-300 text-right ${
-        isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'
+        isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-white text-slate-900'
       }`}
     >
       {/* Top Navbar */}
       <header className="p-4 md:px-8 flex items-center justify-between max-w-7xl mx-auto w-full">
+        {/* Top-Right Logo & Brand Title */}
         <div className="flex items-center gap-3">
-          <div
-            className="w-10 h-10 rounded-2xl flex items-center justify-center text-white shadow-lg"
-            style={{ backgroundColor: activeTheme?.primary || '#2563eb' }}
-          >
-            <Zap className="w-6 h-6 fill-current text-amber-300" />
-          </div>
+          <BrandLogo
+            customLogoUrl={systemSettings.logoUrl}
+            size="md"
+            primaryColor={activeTheme?.primary || '#2563eb'}
+          />
           <div>
             <h1 className="text-lg md:text-xl font-black">منصة أقسام رعد</h1>
-            <p className="text-[11px] text-slate-400">طريقك للوصول إلى 100% في القدرات والتحصيلي</p>
+            <p className={`text-[11px] ${isDarkMode ? 'text-slate-400' : 'text-slate-500 font-bold'}`}>
+              طريقك للوصول إلى 100% في القدرات والتحصيلي
+            </p>
           </div>
         </div>
 
         {/* Day/Night Mode Toggle */}
         <button
           onClick={toggleDarkMode}
-          className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-bold transition shadow-sm ${
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-black transition shadow-sm ${
             isDarkMode
               ? 'bg-slate-900 border-slate-800 text-amber-300 hover:bg-slate-800'
-              : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100'
+              : 'bg-white border-slate-200 text-slate-800 hover:bg-slate-50 shadow-sm'
           }`}
           title={isDarkMode ? 'تفعيل الوضع النهاري' : 'تفعيل الوضع الليلي'}
         >
@@ -214,24 +217,25 @@ export const AuthView: React.FC<AuthViewProps> = ({
       {/* Main Authentication Card */}
       <main className="flex-1 flex items-center justify-center p-4">
         <div
-          className={`w-full max-w-md p-6 md:p-8 rounded-3xl border shadow-2xl backdrop-blur-xl relative transition-all ${
+          className={`w-full max-w-md p-6 md:p-8 rounded-3xl border shadow-2xl relative transition-all ${
             isDarkMode
-              ? 'bg-slate-900/90 border-slate-800'
-              : 'bg-white border-slate-200'
+              ? 'bg-slate-900/90 border-slate-800 backdrop-blur-xl'
+              : 'bg-white border-slate-200 shadow-xl'
           }`}
         >
-          {/* Card Header */}
-          <div className="text-center space-y-2 mb-6">
-            <div
-              className="inline-flex p-3 rounded-2xl text-white shadow-md mb-1"
-              style={{ backgroundColor: activeTheme?.primary || '#2563eb' }}
-            >
-              <Zap className="w-8 h-8 fill-current text-amber-300" />
+          {/* Card Header with Brand Logo */}
+          <div className="text-center space-y-3 mb-6">
+            <div className="flex justify-center">
+              <BrandLogo
+                customLogoUrl={systemSettings.logoUrl}
+                size="lg"
+                primaryColor={activeTheme?.primary || '#2563eb'}
+              />
             </div>
             <h2 className="text-2xl font-black">
               {isSignUp ? 'إنشاء حساب جديد' : 'تسجيل الدخول إلى المنصة'}
             </h2>
-            <p className="text-xs text-slate-400">
+            <p className={`text-xs ${isDarkMode ? 'text-slate-400' : 'text-slate-600 font-bold'}`}>
               {isSignUp
                 ? 'أدخل بياناتك للانضمام فوراً إلى تدريبات وشروحات رعد'
                 : 'اكتب نفس البريد وكلمة المرور المسجلين لديك'}
@@ -242,7 +246,7 @@ export const AuthView: React.FC<AuthViewProps> = ({
           <form onSubmit={handleSubmit} className="space-y-4">
             {isSignUp && (
               <div>
-                <label className="block text-xs font-bold mb-1.5 text-slate-300">
+                <label className={`block text-xs font-bold mb-1.5 ${isDarkMode ? 'text-slate-300' : 'text-slate-800'}`}>
                   الاسم الكامل:
                 </label>
                 <div className="relative">
@@ -256,7 +260,7 @@ export const AuthView: React.FC<AuthViewProps> = ({
                     className={`w-full pr-10 pl-4 py-2.5 text-xs rounded-xl border focus:outline-none focus:ring-1 ${
                       isDarkMode
                         ? 'bg-slate-800/80 border-slate-700 text-white focus:border-blue-500'
-                        : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-blue-500'
+                        : 'bg-white border-slate-300 text-slate-900 focus:border-blue-500'
                     }`}
                   />
                 </div>
@@ -264,7 +268,7 @@ export const AuthView: React.FC<AuthViewProps> = ({
             )}
 
             <div>
-              <label className="block text-xs font-bold mb-1.5 text-slate-300">
+              <label className={`block text-xs font-bold mb-1.5 ${isDarkMode ? 'text-slate-300' : 'text-slate-800'}`}>
                 البريد الإلكتروني:
               </label>
               <div className="relative">
@@ -278,14 +282,14 @@ export const AuthView: React.FC<AuthViewProps> = ({
                   className={`w-full pr-10 pl-4 py-2.5 text-xs rounded-xl border focus:outline-none focus:ring-1 ${
                     isDarkMode
                       ? 'bg-slate-800/80 border-slate-700 text-white focus:border-blue-500'
-                      : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-blue-500'
+                      : 'bg-white border-slate-300 text-slate-900 focus:border-blue-500'
                   }`}
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold mb-1.5 text-slate-300">
+              <label className={`block text-xs font-bold mb-1.5 ${isDarkMode ? 'text-slate-300' : 'text-slate-800'}`}>
                 كلمة المرور:
               </label>
               <div className="relative">
@@ -299,7 +303,7 @@ export const AuthView: React.FC<AuthViewProps> = ({
                   className={`w-full pr-10 pl-4 py-2.5 text-xs rounded-xl border focus:outline-none focus:ring-1 ${
                     isDarkMode
                       ? 'bg-slate-800/80 border-slate-700 text-white focus:border-blue-500'
-                      : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-blue-500'
+                      : 'bg-white border-slate-300 text-slate-900 focus:border-blue-500'
                   }`}
                 />
               </div>
@@ -324,14 +328,14 @@ export const AuthView: React.FC<AuthViewProps> = ({
           </form>
 
           {/* Toggle between Login and Sign Up */}
-          <div className="mt-6 pt-4 border-t border-slate-800/60 text-center">
+          <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800/60 text-center">
             <button
               type="button"
               onClick={() => {
                 setIsSignUp(!isSignUp);
                 setError('');
               }}
-              className="text-xs text-blue-400 hover:text-blue-300 font-bold transition"
+              className="text-xs text-blue-600 dark:text-blue-400 hover:underline font-bold transition"
             >
               {isSignUp
                 ? 'لديك حساب بالفعل؟ اضغط هنا لتسجيل الدخول'
@@ -344,25 +348,27 @@ export const AuthView: React.FC<AuthViewProps> = ({
       {/* FOOTER WITH THE 3 EXACT SENTENCES (RIGHT, CENTER, LEFT) */}
       <footer
         className={`py-6 px-6 md:px-12 border-t select-none transition-colors ${
-          isDarkMode ? 'bg-slate-950 border-slate-800/80 text-slate-400' : 'bg-white border-slate-200 text-slate-600'
+          isDarkMode ? 'bg-slate-950 border-slate-800/80 text-slate-400' : 'bg-white border-slate-200 text-slate-800'
         }`}
       >
         <div className="max-w-[1700px] mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-xs md:text-sm font-bold">
           {/* Sentence 1: ON THE RIGHT (عاليمين) */}
-          <div className="text-right w-full md:w-1/3 text-slate-300">
+          <div className={`text-right w-full md:w-1/3 ${isDarkMode ? 'text-slate-300' : 'text-slate-800'}`}>
             المصمم مازن محمد محروس
           </div>
 
           {/* Sentence 2: IN THE CENTER (فالنص - 7 clicks triggers admin password!) */}
           <div
             onClick={handleFooterSentenceClick}
-            className="text-center w-full md:w-1/3 cursor-pointer hover:text-amber-400 transition-colors py-1"
+            className={`text-center w-full md:w-1/3 cursor-pointer hover:text-amber-500 transition-colors py-1 ${
+              isDarkMode ? 'text-slate-300' : 'text-slate-900 font-bold'
+            }`}
           >
             جميع محتويات المنصة محفوظة لمنصة اقسام رعد
           </div>
 
           {/* Sentence 3: ON THE LEFT (عاليسار) */}
-          <div className="text-left w-full md:w-1/3 text-amber-400 font-black">
+          <div className="text-left w-full md:w-1/3 text-amber-500 font-black">
             منصة اقسام رعد تضمن لك المئوية باذن الله
           </div>
         </div>

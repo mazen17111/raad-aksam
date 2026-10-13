@@ -70,7 +70,7 @@ export default function App() {
   };
 
   return (
-    <div className={isDarkMode ? 'dark min-h-screen bg-slate-950 text-white' : 'light min-h-screen bg-slate-100 text-black'} dir="rtl">
+    <div className={isDarkMode ? 'dark min-h-screen bg-slate-950 text-white' : 'light min-h-screen bg-white text-slate-900'} dir="rtl">
       {/* If Admin Panel is open */}
       {isAdminOpen ? (
         <AdminPanel
